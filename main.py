@@ -1,90 +1,136 @@
 import sys
+import random
 
 
-letter0 = []
-letter1 = []
-letter2 = []
-letter3 = []
-letter4 = []
+def make_dict():
+    # Open the text file for reading
+    with open("wordle.txt", "r") as file:
+        # Read the lines from the file and store them in a list
+        word_list = file.read().splitlines()
+
+    return word_list
 
 
-words = len(sys.argv) - 2
+def green_logic(confirmed_word):
+    # making GREEN section
+    confirmed = []
+    for letter in confirmed_word:
+        if letter == "_":
+            confirmed.append(None)
+        else:
+            confirmed.append(letter)
+    return confirmed
 
-confirmed = []
 
-confirmed_word = sys.argv[1]
+def build_letter_lists_and_contains():
+    contains = {}
+    letter_lists = [[] for _ in range(5)]
 
-for letter in confirmed_word:
-    if letter == '_':
-        confirmed.append(None)
+    for i in range(len(sys.argv) - 2):
+        word = sys.argv[i + 2]
+        if len(word) != 5:
+            print(f"Invalid input. {word} is a SHIT word. Gotta be five letters.")
+            sys.exit()
+
+        word_list = list(word)
+        for j in range(len(word_list)):
+            # ADD YELLOWS
+            if word[j].isupper():
+                lowercase = word_list[j].lower()
+                if lowercase not in contains:
+                    contains[lowercase] = []
+                contains[lowercase].append(j)
+                word_list[j] = lowercase
+
+            letter_lists[j].append(word_list[j])
+
+    return letter_lists, contains
+
+
+def eliminate_words(word_list, contains, confirmed, letter_lists):
+    possible_words = []
+
+    for word in word_list:
+        flag = True
+
+        # contains logic
+        contains_keys = contains.keys()
+        contains_list = list(contains_keys)
+
+        # contains = list(contains_keys)
+        for i in range(len(contains_list)):
+            if contains_list[i] not in word:
+                flag = False
+
+        for i in range(5):
+            # eliminate b/c known letter is not matched
+            if confirmed[i] and confirmed[i] != word[i]:
+                flag = False
+            if word[i] in letter_lists[i] and word[i] != confirmed[i]:
+                flag = False
+            # contains dict logic
+            if word[i] in contains and i in contains[word[i]]:
+                flag = False
+
+        if flag:
+            possible_words.append(word)
+    return possible_words
+
+
+def print_res(possible_words):
+    if len(possible_words) > 30:
+        print(f"{len(possible_words)} possibilities remain!")
+    if len(possible_words) < 30:
+        print(f"{len(possible_words)} possible words:\n")
+        print(possible_words)
+
+
+def stochastic_guess(possible_words, contains, confirmed, letter_lists):
+    min_possibles = 999999
+
+    if len(possible_words) > 500:
+        n = random.randint(450, 499)
     else:
-        confirmed.append(letter)
+        n = len(possible_words)
 
-print(confirmed)
+    word_to_return = None
 
-for i in range(words):
-    word = sys.argv[i + 2]
-    word = word.lower()
-    print(word)
-    if len(word) != 5:
-        print(f"Invalid input. {word} is a SHIT word. Gotta be five letters.")
-        sys.exit()
-    else:
-        # for j in range(len(word)):
-        #     letter_lists[j].append(word[i])
-        letter0.append(word[0])
-        letter1.append(word[1])
-        letter2.append(word[2])
-        letter3.append(word[3])
-        letter4.append(word[4])
+    for i in range(n):
+        # word = random.choice(possible_words)  # NOT RANDOM YET!!!!!
+        word = possible_words[i]
 
-# if len(sys.argv) != 2 or len(sys.argv[1]) != 5:
-#     print("Invalid input. Please provide a single 5-letter word as an argument.")
-# else:
-#     word = sys.argv[1]
+        # add word to contains & letter_lists
+        for letter in word:
+            if letter not in contains:
+                contains[letter] = []
+            contains[letter].append(word.index(letter))
+            letter_lists[word.index(letter)].append(letter)
 
-#     letter1.append(word[0])
-#     letter2.append(word[1])
-#     letter3.append(word[2])
-#     letter4.append(word[3])
-#     letter5.append(word[4])
+        possibles = eliminate_words(possible_words, contains, confirmed, letter_lists)
 
-letter_lists = [letter0, letter1, letter2, letter3, letter4]
-print(letter_lists)
+        if len(possibles) < min_possibles:
+            word_to_return = word
 
-res_words = []
+        min_possibles = min(min_possibles, len(possibles))
+
+    return word_to_return, min_possibles
 
 
-print(f"1. {letter0}")
-print(f"2. {letter1}")
-print(f"3. {letter2}")
-print(f"4. {letter3}")
-print(f"5. {letter4}")
+def main():
+    print("Cheating is wrong.")
+    confirmed = green_logic(sys.argv[1])
+    letter_lists, contains = build_letter_lists_and_contains()
+
+    word_list = make_dict()
+    possible_words = eliminate_words(word_list, contains, confirmed, letter_lists)
+
+    suggested_guess, num = stochastic_guess(
+        possible_words, contains, confirmed, letter_lists
+    )
+
+    print_res(possible_words)
+    print(f"Stochastic guess: {suggested_guess}")
 
 
-
-# Open the text file for reading
-with open('valid-wordle-words.txt', 'r') as file:
-    # Read the lines from the file and store them in a list
-    word_list = file.read().splitlines()
-
-
-possible_words = []
-
-for word in word_list:
-    
-    flag = True
-    for i in range(5):
-        if confirmed[i] and confirmed[i] != word[i]:
-            flag = False
-
-            
-    
-    if flag:
-        possible_words.append(word)
-
-
-print(len(possible_words))
-
-if len(possible_words) < 10:
-    print(possible_words)
+if __name__ == "__main__":
+    main()
