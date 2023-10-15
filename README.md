@@ -3,24 +3,23 @@
 
 example call:
 
-Warning: Built this just for myself, UI is less-than-stellar. 
-
-first Command Line Argument: If you know a certain letter goes in a certain spot (green on wordle),
-go ahead and fill that in. Otherwise, '_'
-
-All following Command Line Arguments: Fill in the words you guessed, if it popped up yellow on wordle, 
-make that one a capitalized letter. 
-
 
 Example: 
 
+<img src="./wordle_screenshot1.png" width=250>
 
 
 ```
-python ./main.py _____ piano
+python ./main.py _____ dAisy
+```
+
+<img src="./wordle_screenshot2.png" width=250>
+
+
+```
+python ./main.py _____ dAisy plAcE
 ```
 
 
-- Will return: 
 
-words listed, if there's less than 20 possibilities 
+
